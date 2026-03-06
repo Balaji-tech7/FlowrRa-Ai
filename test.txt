@@ -1,0 +1,254 @@
+You are a senior backend engineer working on a production AI automation platform built around n8n.
+
+Your job is to generate the backend code that integrates a custom automation system with n8n.
+
+Important rules:
+
+Generate FULL code for every file.
+Do NOT summarize or skip code.
+Do NOT use placeholders like "add your logic here".
+All files must be copy-paste runnable, including handling of errors, imports, and exports.
+Follow the folder structure EXACTLY as defined below.
+Assume a standard Node.js project setup with TypeScript; include any necessary package.json dependencies in your response if relevant, but focus on the specified files.
+For local execution: After generating files, the setup must run with docker-compose up (in n8n-docker), npm install (in backend), and npm run dev (in backend, assuming a package.json with "dev": "ts-node src/server.ts").
+Tech stack:
+Node.js
+TypeScript
+Express
+PostgreSQL
+Redis
+Docker
+n8n (self-hosted)
+
+PROJECT STRUCTURE (DO NOT CHANGE)
+
+C:.
+├── ai_engine
+├── assets
+├── backend
+│ ├── src
+│ │ ├── controllers
+│ │ ├── middleware
+│ │ ├── models
+│ │ ├── routes
+│ │ ├── services
+│ │ │ └── workflow.service.ts
+│ │ ├── webhooks
+│ │ │ └── n8n
+│ │ ├── config
+│ │ │ └── n8n.config.ts
+│ │ └── n8n-workflows
+│ │ ├── nodes
+│ │ │ └── OurAI-Chat-Model
+│ │ ├── workflows
+│ │ │ └── user-onboarding.json
+│ │ ├── credentials
+│ │ ├── triggers
+│ │ └── utils
+│ ├── tests
+│ └── package.json # Assume this exists; include dependencies like express, axios, etc., if needed in response
+├── docs
+├── frontend
+├── n8n-docker
+│ ├── docker-compose.yml
+│ └── .env
+└── scripts
+└── dev-n8n.sh
+
+TASKS TO IMPLEMENT
+
+n8n Local Setup
+Generate:
+
+n8n-docker/docker-compose.yml
+
+It must run:
+
+n8n (latest image)
+PostgreSQL (version 14)
+Redis (version 7-alpine)
+Environment must allow loading custom nodes from:
+
+backend/src/n8n-workflows/nodes
+
+Include health checks, volumes for persistence, and proper dependencies between services. Mount the custom nodes directory as a volume.
+
+n8n Configuration
+Create file:
+
+backend/src/config/n8n.config.ts
+
+This should export configuration values such as:
+
+n8n API URL (default: http://localhost:5678/api/v1)
+webhook base URL (default: http://localhost:5678/webhook)
+API key (from env, with fallback)
+workflow execution mode (from env, default 'manual')
+Basic auth credentials (user/password from env)
+Use process.env for all values with sensible fallbacks.
+
+Workflow Service
+Create file:
+
+backend/src/services/workflow.service.ts
+
+This service must provide methods:
+
+executeWorkflow(workflowId: string, payload: any): Promise<any> – Uses n8n REST API to execute a workflow.
+listWorkflows(): Promise<Workflow[]> – Fetches all workflows.
+getWorkflow(workflowId: string): Promise<Workflow> – Fetches a single workflow.
+triggerWebhook(workflowId: string, payload: any): Promise<any> – Triggers a webhook for the workflow.
+Use Axios for HTTP calls to the n8n API. Include authentication via basic auth from config. Handle errors with try-catch and console logging. Define a Workflow interface.
+
+Express Backend
+Generate minimal Express backend:
+
+backend/src/server.ts
+
+Include:
+
+Express app setup with TypeScript types.
+Middleware: helmet, cors, body-parser json (limit 10mb).
+Health check endpoint: GET /health.
+Mount workflow routes at /api.
+Mount webhook handler at /webhooks (using the function from task 7).
+404 and global error handlers.
+Listen on PORT (default 3000) with logging.
+Import and use config from n8n.config.ts.
+
+Routes
+Create:
+
+backend/src/routes/workflow.routes.ts
+
+Endpoints:
+
+POST /workflow/run – Body: { workflowId, payload }
+GET /workflow – List all workflows
+GET /workflow/:id – Get single workflow
+Use Express Router and import controllers from task 6.
+
+Controllers
+Create:
+
+backend/src/controllers/workflow.controller.ts
+
+Functions:
+
+runWorkflow(req, res): Handles POST /workflow/run, calls service.executeWorkflow, returns JSON success/error.
+getWorkflow(req, res): Handles GET /workflow/:id, calls service.getWorkflow.
+listWorkflows(req, res): Handles GET /workflow, calls service.listWorkflows.
+Include input validation, try-catch error handling, and console logging for errors. Use async/await and TypeScript types.
+
+Webhooks
+Create folder:
+
+backend/src/webhooks/n8n
+
+Add example webhook handler file:
+
+userOnboarding.webhook.ts
+
+This exports a function createWebhookHandler(config) that returns an Express Router. It should:
+
+Handle POST /user-onboarding: Log the payload (workflowId, body, timestamp) and respond with { received: true }.
+Handle generic POST /:webhookId: Log the webhookId and body, respond with { status: 'ok' }.
+Use the config for any auth/logging needs.
+
+Custom n8n Node
+Create custom node:
+
+backend/src/n8n-workflows/nodes/OurAI-Chat-Model
+
+Generate:
+
+OurAIChatModel.node.ts: Full n8n node implementation (class extending INodeType). Properties: displayName, name ('ourAIChatModel'), icon, group, inputs/outputs. Execute method: Returns { message: "Hello from our AI engine" } for each input item. Use IExecuteFunctions.
+OurAIChatModel.node.json: Node description JSON with name, codex (category: "Custom", displayName), icon, category.
+Follow official n8n node development structure exactly (import from 'n8n-workflow').
+
+First Workflow
+Create file:
+
+backend/src/n8n-workflows/workflows/user-onboarding.json
+
+Workflow steps (valid n8n JSON export format):
+
+Webhook Trigger (POST /user-onboarding)
+↓ Our AI Chat Model Node (with message param)
+↓ Respond to Webhook (respond with JSON from previous node)
+Include nodes array, connections, positions, settings (executionOrder: "v1"), and other required fields. Use correct node types (e.g., "n8n-nodes-base.webhook").
+
+Dev Script
+Create script:
+
+scripts/dev-n8n.sh
+
+This script should:
+
+cd to n8n-docker.
+Symlink or ensure ./custom_nodes points to backend/src/n8n-workflows/nodes.
+Run docker-compose up -d.
+Wait 10s and check n8n health via curl (http://localhost:5678/healthz).
+Log success or show docker logs on failure.
+Print instructions to start backend (cd backend && npm install && npm run dev).
+Make it executable (#!/bin/bash) and handle errors.
+
+Additional Setup Notes for Runnability
+Backend dependencies (add to package.json if generating): express, cors, helmet, body-parser, axios, typescript, ts-node, @types/node, @types/express.
+Include a minimal tsconfig.json in backend if needed: { "compilerOptions": { "target": "ES2020", "module": "commonjs", "strict": true, "esModuleInterop": true } }.
+n8n must load custom nodes on startup; ensure volume mount in docker-compose.
+All code must be error-resilient and log appropriately.
+OUTPUT FORMAT
+
+Generate code in this exact order, prefixed with clear headers (e.g., "# 1. n8n-docker/docker-compose.yml") and wrapped in appropriate code blocks (yaml for docker-compose, env for .env, bash for script, ts for TypeScript, json for JSON files). Separate each file clearly. Do not add extra explanations unless clarifying a file's purpose inline.
+
+docker-compose.yml
+.env
+dev-n8n.sh
+n8n.config.ts
+server.ts
+workflow.service.ts
+workflow.routes.ts
+workflow.controller.ts
+userOnboarding.webhook.ts (webhook handler)
+OurAIChatModel.node.ts and OurAIChatModel.node.json (custom node code)
+user-onboarding.json (workflow JSON)
+## Prompt 2 – Added Context File (send this right after he confirms Prompt 1 is done)
+
+```markdown
+Perfect. Now create this file exactly at the root:
+
+Filename: `CONTEXT_FOR_ALL_DEVS.md`
+
+Content:
+```markdown
+# MASTER CONTEXT FILE – READ THIS FIRST (updated April 2025)
+
+This is the single source of truth for our entire backend architecture.
+
+Current state (as of today):
+- n8n is fully integrated as our workflow engine
+- All automation logic lives in n8n, NOT in Express
+- Express backend is ONLY a thin API gateway + webhook receiver
+- Custom AI models are called via custom n8n nodes in backend/src/n8n-workflows/nodes/
+- All future agents, CRM triggers, email sequences, onboarding flows → built in n8n
+- VS Code + Copilot is fully configured with PROJECT_CONTEXT.md and .copilot-prompt.md
+
+Golden Rule:
+Never write business logic in Express controllers.
+Always ask: "Can this be a workflow or custom node instead?" → 99% of the time the answer is YES.
+
+Current models available in n8n custom node (OurAI-Chat-Model):
+- Grok-2 (default)
+- Claude-3.5-Sonnet (fallback)
+- Llama-3.1-70B (long context)
+- GPT-4o (premium users only)
+
+All models are reachable via our internal AI gateway at http://ai_engine:8000/v1/chat/completions
+Headers: { "X-API-Key": process.env.AI_GATEWAY_KEY }
+
+Never expose model details to frontend. Always go through /api/workflow/run
+
+Anyone who touches backend code MUST have PROJECT_CONTEXT.md open in VS Code at all times.
+
+This file will be updated every time we add a new model, workflow, or architecture decision.

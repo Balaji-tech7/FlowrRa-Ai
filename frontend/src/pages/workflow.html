@@ -1,0 +1,2282 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowForge AI - Workflow Builder</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #020617;
+        overflow: hidden;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+      }
+
+      /* Glassmorphism */
+      .glass-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .glass-card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .glass-card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.3);
+      }
+
+      /* Primary gradient */
+      .gradient-primary {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+      }
+
+      .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .gradient-border {
+        position: relative;
+      }
+
+      .gradient-border::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        padding: 1px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.5;
+      }
+
+      /* Glow effects */
+      .glow-primary {
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+      }
+
+      .glow-cyan {
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+        }
+      }
+
+      @keyframes typing {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+
+      .animate-pulse-glow {
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      /* Drag and drop */
+      .dragging {
+        opacity: 0.5;
+        transform: scale(1.02);
+      }
+
+      .drag-over {
+        border-color: #6366f1 !important;
+        background: rgba(99, 102, 241, 0.1);
+      }
+
+      /* Step card expanded */
+      .step-card {
+        transition: all 0.3s ease;
+      }
+
+      .step-card.expanded {
+        background: rgba(15, 23, 42, 0.8);
+      }
+
+      /* Mobile bottom nav */
+      @media (max-width: 768px) {
+        .desktop-nav {
+          display: none;
+        }
+        .mobile-bottom-nav {
+          display: flex;
+        }
+      }
+
+      @media (min-width: 769px) {
+        .mobile-bottom-nav {
+          display: none;
+        }
+      }
+
+      /* Minimap */
+      .minimap-node {
+        transition: all 0.2s ease;
+      }
+
+      .minimap-node.active {
+        transform: scale(1.2);
+        box-shadow: 0 0 10px currentColor;
+      }
+
+      /* Log entries */
+      .log-entry {
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 12px;
+      }
+
+      /* Toast */
+      .toast {
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+    <style>
+      body {
+        box-sizing: border-box;
+      }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <!-- toastify for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <!-- optional module imports (keep for future refactor) -->
+    <script type="module" src="/src/scripts/auth.js"></script>
+    <script type="module" src="/src/scripts/workflow.js"></script>
+    <script type="module" src="/src/scripts/navigation.js"></script>
+    <script type="module" src="/src/pages/dashboard.js"></script>
+  </head>
+  <body class="h-full overflow-hidden">
+    <div id="app" class="h-full flex flex-col" style="background: #020617">
+      <!-- Login Screen -->
+      <div
+        id="login-screen"
+        class="h-full flex items-center justify-center p-4"
+      >
+        <div class="glass-card p-8 w-full max-w-md animate-fade-in">
+          <div class="text-center mb-8">
+            <div
+              class="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-4 glow-primary"
+            >
+              <svg
+                class="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">FlowForge AI</h1>
+            <p class="text-slate-400">Build intelligent workflows with AI</p>
+          </div>
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2"
+                >Email</label
+              >
+              <input
+                type="email"
+                id="login-email"
+                required
+                class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                placeholder="demo@demo.com"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2"
+                >Password</label
+              >
+              <input
+                type="password"
+                id="login-password"
+                required
+                class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+            <div
+              id="login-error"
+              class="hidden text-red-400 text-sm text-center py-2"
+            ></div>
+            <button
+              type="submit"
+              class="w-full py-3 gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all glow-primary"
+            >
+              Sign In
+            </button>
+          </form>
+          <div class="mt-6 text-center text-sm text-slate-500">
+            <p>Demo accounts:</p>
+            <p class="text-slate-400">demo@demo.com / password123</p>
+          </div>
+        </div>
+      </div>
+      <!-- Main App -->
+      <div id="main-app" class="hidden h-full flex flex-col">
+        <!-- Navbar -->
+        <nav
+          class="flex-shrink-0 glass-card mx-4 mt-4 px-4 py-3 flex items-center justify-between"
+          style="border-radius: 12px"
+        >
+          <!-- Left: Logo -->
+          <div class="flex items-center gap-3">
+            <div
+              class="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <span
+              id="nav-title"
+              class="text-lg font-semibold text-white hidden sm:block"
+              >FlowForge AI</span
+            >
+          </div>
+          <!-- Center: Navigation (Desktop) -->
+          <div class="desktop-nav hidden md:flex items-center gap-1">
+            <button
+              onclick="navigateTo('dashboard')"
+              class="nav-link px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
+              data-page="dashboard"
+            >
+              Dashboard
+            </button>
+            <button
+              onclick="navigateTo('workflows')"
+              class="nav-link px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
+              data-page="workflows"
+            >
+              Workflows
+            </button>
+            <button
+              onclick="navigateTo('builder')"
+              class="nav-link px-4 py-2 text-sm font-medium text-white bg-slate-800/50 rounded-lg transition-all"
+              data-page="builder"
+            >
+              Builder
+            </button>
+            <button
+              onclick="navigateTo('templates')"
+              class="nav-link px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
+              data-page="templates"
+            >
+              Templates
+            </button>
+            <button
+              onclick="navigateTo('integrations')"
+              class="nav-link px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
+              data-page="integrations"
+            >
+              Integrations
+            </button>
+            <button
+              onclick="toggleCopilot()"
+              class="nav-link px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
+              </svg>
+              AI Copilot
+            </button>
+          </div>
+          <!-- Right: Actions -->
+          <div class="flex items-center gap-3">
+            <!-- Search (Desktop) -->
+            <div class="hidden lg:block relative">
+              <input
+                type="text"
+                placeholder="Search workflows..."
+                class="w-48 pl-9 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
+              />
+              <svg
+                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <!-- Create Button -->
+            <button
+              onclick="createNewWorkflow()"
+              class="hidden sm:flex items-center gap-2 px-4 py-2 gradient-primary text-white text-sm font-medium rounded-lg hover:opacity-90 transition-all"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                /></svg
+              ><span class="hidden xl:inline">Create Workflow</span>
+            </button>
+            <!-- Notifications -->
+            <button
+              class="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                /></svg
+              ><span
+                class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+              ></span>
+            </button>
+            <!-- Avatar -->
+            <button
+              onclick="logout()"
+              class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-medium text-sm hover:ring-2 hover:ring-indigo-500/50 transition-all"
+              id="user-avatar"
+            >
+              D
+            </button>
+          </div>
+        </nav>
+        <!-- Main Content Area -->
+        <div class="flex-1 flex overflow-hidden p-4 gap-4">
+          <!-- Left Toolbox -->
+          <div
+            id="toolbox"
+            class="hidden lg:flex flex-col w-20 glass-card p-3 gap-2"
+          >
+            <div class="text-xs text-slate-500 text-center mb-2 font-medium">
+              Toolbox
+            </div>
+            <button
+              draggable="true"
+              data-step-type="trigger"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-emerald-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >Trigger</span
+              >
+            </button>
+            <button
+              draggable="true"
+              data-step-type="ai"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >AI</span
+              >
+            </button>
+            <button
+              draggable="true"
+              data-step-type="database"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-cyan-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >Database</span
+              >
+            </button>
+            <button
+              draggable="true"
+              data-step-type="webhook"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center group-hover:bg-orange-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-orange-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >Webhook</span
+              >
+            </button>
+            <button
+              draggable="true"
+              data-step-type="condition"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >Condition</span
+              >
+            </button>
+            <button
+              draggable="true"
+              data-step-type="transform"
+              class="tool-item group flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-800/50 transition-all cursor-grab"
+              ondragstart="handleToolDragStart(event)"
+            >
+              <div
+                class="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center group-hover:bg-pink-500/30 transition-all"
+              >
+                <svg
+                  class="w-5 h-5 text-pink-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs text-slate-500 group-hover:text-slate-300"
+                >Transform</span
+              >
+            </button>
+          </div>
+          <!-- Center: Workflow Builder -->
+          <div class="flex-1 flex flex-col gap-4 min-w-0">
+            <!-- Workflow Header -->
+            <div
+              class="glass-card p-4 flex items-center justify-between flex-wrap gap-3"
+            >
+              <div class="flex items-center gap-3">
+                <input
+                  type="text"
+                  id="workflow-name"
+                  value="New Workflow"
+                  class="bg-transparent text-xl font-semibold text-white border-b border-transparent hover:border-slate-700 focus:border-indigo-500 focus:outline-none transition-all max-w-[200px] sm:max-w-none"
+                />
+                <span
+                  class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-400"
+                  >Draft</span
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  onclick="runWorkflow()"
+                  class="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-all"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewbox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    /></svg
+                  ><span class="hidden sm:inline">Run</span>
+                </button>
+                <button
+                  onclick="saveWorkflow()"
+                  class="flex items-center gap-2 px-4 py-2 gradient-primary text-white rounded-lg hover:opacity-90 transition-all"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewbox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                    /></svg
+                  ><span class="hidden sm:inline">Save</span>
+                </button>
+              </div>
+            </div>
+            <!-- Workflow Lane (Vertical Timeline) -->
+            <div
+              class="flex-1 overflow-y-auto overflow-x-hidden pr-2"
+              id="workflow-container"
+            >
+              <div
+                id="workflow-lane"
+                class="relative pb-8"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+              >
+                <!-- Timeline Line -->
+                <div
+                  class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-500 via-purple-500 to-cyan-500 opacity-30"
+                ></div>
+                <!-- Steps Container -->
+                <div id="steps-container" class="space-y-4">
+                  <!-- Steps will be rendered here -->
+                </div>
+                <!-- Add Step Button -->
+                <div class="relative ml-12 mt-4">
+                  <button
+                    onclick="showAddStepMenu()"
+                    class="w-full py-4 border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:border-indigo-500 hover:text-indigo-400 transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewbox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Add Step
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Run Preview / Logs -->
+            <div class="glass-card p-4 max-h-48 overflow-hidden flex flex-col">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewbox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    /></svg
+                  ><span class="text-sm font-medium text-slate-300"
+                    >Run Preview</span
+                  >
+                </div>
+                <button
+                  onclick="clearLogs()"
+                  class="text-xs text-slate-500 hover:text-slate-300 transition-all"
+                >
+                  Clear
+                </button>
+              </div>
+              <div
+                id="logs-container"
+                class="flex-1 overflow-y-auto space-y-1 font-mono text-xs"
+              >
+                <div class="text-slate-500">
+                  // Workflow logs will appear here...
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right: Minimap -->
+          <div
+            id="minimap-panel"
+            class="hidden xl:flex flex-col w-48 glass-card p-4"
+          >
+            <div class="text-xs text-slate-500 mb-3 font-medium">
+              Workflow Map
+            </div>
+            <!-- Radial Minimap -->
+            <div class="flex-1 flex items-center justify-center">
+              <div id="minimap" class="relative w-36 h-36">
+                <svg class="w-full h-full" viewbox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="rgba(99,102,241,0.2)"
+                    stroke-width="1"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="30"
+                    fill="none"
+                    stroke="rgba(99,102,241,0.1)"
+                    stroke-width="1"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="20"
+                    fill="none"
+                    stroke="rgba(99,102,241,0.05)"
+                    stroke-width="1"
+                  />
+                </svg>
+                <div id="minimap-nodes" class="absolute inset-0">
+                  <!-- Minimap nodes rendered here -->
+                </div>
+              </div>
+            </div>
+            <!-- Legend -->
+            <div class="mt-4 space-y-2">
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                <span class="text-slate-400">Trigger</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-3 h-3 rounded-full bg-purple-400"></div>
+                <span class="text-slate-400">AI Action</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+                <span class="text-slate-400">Database</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-3 h-3 rounded-full bg-orange-400"></div>
+                <span class="text-slate-400">Webhook</span>
+              </div>
+            </div>
+          </div>
+          <!-- AI Copilot Panel -->
+          <div
+            id="copilot-panel"
+            class="hidden w-80 glass-card p-4 flex flex-col"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center animate-pulse-glow"
+                >
+                  <svg
+                    class="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewbox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                </div>
+                <span class="font-semibold text-white">AI Copilot</span>
+              </div>
+              <button
+                onclick="toggleCopilot()"
+                class="p-1 text-slate-400 hover:text-white transition-all"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-slate-400 mb-4">
+              Describe your workflow in plain English and I'll build it for you.
+            </p>
+            <div class="flex-1 overflow-y-auto mb-4" id="copilot-chat">
+              <div class="space-y-3">
+                <div class="glass-card p-3 text-sm text-slate-300">
+                  <p class="font-medium text-cyan-400 mb-1">Try asking:</p>
+                  <p class="text-slate-400 italic">
+                    "When Telegram message arrives, summarize with AI and store
+                    in database."
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              id="ai-stream-output"
+              class="glass-card p-3 text-sm text-white overflow-auto h-40"
+            ></div>
+            <div id="ai-token-stats" class="text-xs text-slate-400 mt-2"></div>
+            <form id="copilot-form" class="flex gap-2">
+              <input
+                type="text"
+                id="copilot-input"
+                placeholder="Describe your workflow..."
+                class="flex-1 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
+              />
+              <button
+                type="submit"
+                class="px-4 py-2 gradient-primary text-white rounded-lg hover:opacity-90 transition-all"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- Mobile Bottom Navigation -->
+        <div
+          class="mobile-bottom-nav fixed bottom-0 left-0 right-0 glass-card mx-4 mb-4 px-2 py-2 items-center justify-around"
+          style="border-radius: 16px"
+        >
+          <button
+            onclick="navigateTo('dashboard')"
+            class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-all"
+            data-page="dashboard"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              /></svg
+            ><span class="text-xs">Home</span>
+          </button>
+          <button
+            onclick="navigateTo('workflows')"
+            class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-all"
+            data-page="workflows"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              /></svg
+            ><span class="text-xs">Flows</span>
+          </button>
+          <button
+            onclick="navigateTo('builder')"
+            class="flex flex-col items-center gap-1 p-3 -mt-4 gradient-primary text-white rounded-2xl glow-primary"
+            data-page="builder"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+          <button
+            onclick="toggleCopilot()"
+            class="flex flex-col items-center gap-1 p-2 text-cyan-400 hover:text-cyan-300 transition-all"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              /></svg
+            ><span class="text-xs">AI</span>
+          </button>
+          <button
+            onclick="logout()"
+            class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-all"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              /></svg
+            ><span class="text-xs">Profile</span>
+          </button>
+        </div>
+      </div>
+      <!-- Toast Container -->
+      <div
+        id="toast-container"
+        class="fixed top-20 right-4 z-50 space-y-2"
+      ></div>
+      <!-- Add Step Menu (Modal) -->
+      <div
+        id="add-step-menu"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+        style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px)"
+      >
+        <div class="glass-card p-6 w-full max-w-md animate-fade-in">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Add Step</h3>
+            <button
+              onclick="hideAddStepMenu()"
+              class="p-1 text-slate-400 hover:text-white transition-all"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewbox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              onclick="addStep('trigger')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-emerald-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">Trigger</span>
+            </button>
+            <button
+              onclick="addStep('ai')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">AI Action</span>
+            </button>
+            <button
+              onclick="addStep('database')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-cyan-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">Database</span>
+            </button>
+            <button
+              onclick="addStep('webhook')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-orange-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">Webhook</span>
+            </button>
+            <button
+              onclick="addStep('condition')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">Condition</span>
+            </button>
+            <button
+              onclick="addStep('transform')"
+              class="p-4 glass-card glass-card-hover flex flex-col items-center gap-2"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-pink-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewbox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </div>
+              <span class="text-sm text-slate-300">Transform</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // ==========================================
+      // App State & Configuration
+      // ==========================================
+
+      const defaultConfig = {
+        app_title: "FlowForge AI",
+        welcome_message: "Build intelligent workflows",
+      };
+
+      let config = { ...defaultConfig };
+
+      // Users database
+      const USERS = [
+        {
+          email: "demo@demo.com",
+          password: "password123",
+          name: "Demo User",
+          avatar: "D",
+        },
+        {
+          email: "alice@example.com",
+          password: "alice123",
+          name: "Alice Smith",
+          avatar: "A",
+        },
+        {
+          email: "bob@example.com",
+          password: "bob123",
+          name: "Bob Johnson",
+          avatar: "B",
+        },
+      ];
+
+      // Current user & state
+      let currentUser = null;
+      let currentWorkflow = null;
+      let workflows = [];
+      let draggedStep = null;
+      let draggedStepType = null;
+
+      // Step types configuration
+      const STEP_TYPES = {
+        trigger: {
+          name: "Trigger",
+          color: "emerald",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>`,
+          options: [
+            "Telegram Message",
+            "Email Received",
+            "Webhook Call",
+            "Schedule",
+            "Form Submit",
+          ],
+        },
+        ai: {
+          name: "AI Action",
+          color: "purple",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>`,
+          options: [
+            "Summarize Text",
+            "Generate Response",
+            "Classify Content",
+            "Extract Data",
+            "Translate",
+          ],
+        },
+        database: {
+          name: "Database",
+          color: "cyan",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>`,
+          options: [
+            "Store Record",
+            "Query Data",
+            "Update Record",
+            "Delete Record",
+            "Aggregate",
+          ],
+        },
+        webhook: {
+          name: "Webhook",
+          color: "orange",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>`,
+          options: [
+            "HTTP GET",
+            "HTTP POST",
+            "Send to Slack",
+            "Send to Discord",
+            "Custom API",
+          ],
+        },
+        condition: {
+          name: "Condition",
+          color: "yellow",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+          options: ["If/Else", "Switch", "Contains", "Equals", "Greater Than"],
+        },
+        transform: {
+          name: "Transform",
+          color: "pink",
+          icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>`,
+          options: [
+            "Map Fields",
+            "Filter Array",
+            "Merge Objects",
+            "Split Text",
+            "Format Date",
+          ],
+        },
+      };
+
+      // ==========================================
+      // Element SDK Integration
+      // ==========================================
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...config, ...newConfig };
+            updateUIFromConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined,
+          }),
+          mapToEditPanelValues: (cfg) =>
+            new Map([
+              ["app_title", cfg.app_title || defaultConfig.app_title],
+              [
+                "welcome_message",
+                cfg.welcome_message || defaultConfig.welcome_message,
+              ],
+            ]),
+        });
+      }
+
+      function updateUIFromConfig() {
+        const navTitle = document.getElementById("nav-title");
+        if (navTitle)
+          navTitle.textContent = config.app_title || defaultConfig.app_title;
+      }
+
+      // ==========================================
+      // Authentication (networked)
+      // ==========================================
+
+      async function login(email, password) {
+        try {
+          const resp = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const json = await resp.json();
+          if (resp.ok && json.success) {
+            const token = json.data?.token;
+            const name = email.split("@")[0];
+            const user = { email, name, token, avatar: name[0] || "" };
+            currentUser = user;
+            localStorage.setItem("flowforge_user", JSON.stringify(user));
+            showMainApp();
+            await loadWorkflows();
+            showToast("Welcome back, " + user.name + "!", "success");
+            return true;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        return false;
+      }
+
+      function logout() {
+        currentUser = null;
+        localStorage.removeItem("flowforge_user");
+        document.getElementById("login-screen").classList.remove("hidden");
+        document.getElementById("main-app").classList.add("hidden");
+        showToast("Logged out successfully", "info");
+      }
+
+      async function checkAuth() {
+        const saved = localStorage.getItem("flowforge_user");
+        if (saved) {
+          currentUser = JSON.parse(saved);
+          showMainApp();
+          await loadWorkflows();
+        }
+      }
+
+      function showMainApp() {
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("main-app").classList.remove("hidden");
+        document.getElementById("user-avatar").textContent = currentUser.avatar;
+        createNewWorkflow();
+      }
+
+      // ==========================================
+      // Workflow Management
+      // ==========================================
+
+      async function loadWorkflows() {
+        workflows = [];
+        const token = currentUser?.token;
+        if (token) {
+          try {
+            const resp = await fetch("/workflows", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const json = await resp.json();
+            if (resp.ok && json.success) {
+              workflows = json.data || [];
+              return;
+            }
+          } catch (e) {
+            console.error("fetch workflows", e);
+          }
+        }
+        const saved = localStorage.getItem(
+          "flowforge_workflows_" + currentUser.email,
+        );
+        workflows = saved ? JSON.parse(saved) : [];
+      }
+
+      function saveWorkflowsToStorage() {
+        localStorage.setItem(
+          "flowforge_workflows_" + currentUser.email,
+          JSON.stringify(workflows),
+        );
+      }
+
+      function createNewWorkflow() {
+        currentWorkflow = {
+          id: "wf_" + Date.now(),
+          name: "New Workflow",
+          steps: [],
+          status: "draft",
+          createdAt: new Date().toISOString(),
+        };
+        document.getElementById("workflow-name").value = currentWorkflow.name;
+        renderWorkflow();
+        updateMinimap();
+      }
+
+      async function saveWorkflow() {
+        currentWorkflow.name = document.getElementById("workflow-name").value;
+        const token = currentUser?.token;
+        if (token) {
+          try {
+            const resp = await fetch("/workflows", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                name: currentWorkflow.name,
+                description: currentWorkflow.description || "",
+                definition: JSON.stringify(currentWorkflow),
+              }),
+            });
+            const json = await resp.json();
+            if (resp.ok && json.success) {
+              showToast("Workflow saved!", "success");
+              // update local list
+              if (json.data) {
+                const idx = workflows.findIndex((w) => w.id === json.data.id);
+                if (idx >= 0) workflows[idx] = json.data;
+                else workflows.push(json.data);
+              }
+              return;
+            } else {
+              console.warn("save failed", json);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        // fallback to old behaviour
+        const existingIndex = workflows.findIndex(
+          (w) => w.id === currentWorkflow.id,
+        );
+        if (existingIndex >= 0) {
+          workflows[existingIndex] = { ...currentWorkflow };
+        } else {
+          workflows.push({ ...currentWorkflow });
+        }
+        saveWorkflowsToStorage();
+        showToast("Workflow saved (local)", "success");
+      }
+
+      // ==========================================
+      // Execution / run
+
+      async function runWorkflow() {
+        if (!currentWorkflow) return;
+        const token = currentUser?.token;
+        if (token) {
+          try {
+            const resp = await fetch("/executions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ workflowId: currentWorkflow.id }),
+            });
+            const json = await resp.json();
+            if (resp.ok && json.success) {
+              showToast("Workflow executed", "success");
+              currentWorkflow.runs = (currentWorkflow.runs || 0) + 1;
+              const idx = workflows.findIndex(
+                (w) => w.id === currentWorkflow.id,
+              );
+              if (idx >= 0) workflows[idx].runs = currentWorkflow.runs;
+              return;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        // local fallback simulation
+        addLog("Ran locally (no server)", "info");
+      }
+
+      // ==========================================
+      // Step Management
+      // ==========================================
+
+      function addStep(type, config = {}) {
+        const stepType = STEP_TYPES[type];
+        const step = {
+          id:
+            "step_" +
+            Date.now() +
+            "_" +
+            Math.random().toString(36).substr(2, 9),
+          type,
+          name: stepType.name,
+          config: {
+            action: stepType.options[0],
+            ...config,
+          },
+          expanded: false,
+        };
+        currentWorkflow.steps.push(step);
+        hideAddStepMenu();
+        renderWorkflow();
+        updateMinimap();
+        addLog(`Added ${stepType.name} step`, "info");
+      }
+
+      function removeStep(stepId) {
+        currentWorkflow.steps = currentWorkflow.steps.filter(
+          (s) => s.id !== stepId,
+        );
+        renderWorkflow();
+        updateMinimap();
+        addLog("Removed step", "warning");
+      }
+
+      function toggleStepExpand(stepId) {
+        const step = currentWorkflow.steps.find((s) => s.id === stepId);
+        if (step) {
+          step.expanded = !step.expanded;
+          renderWorkflow();
+        }
+      }
+
+      function updateStepConfig(stepId, key, value) {
+        const step = currentWorkflow.steps.find((s) => s.id === stepId);
+        if (step) {
+          step.config[key] = value;
+        }
+      }
+
+      // ==========================================
+      // Rendering
+      // ==========================================
+
+      function renderWorkflow() {
+        const container = document.getElementById("steps-container");
+        container.innerHTML = "";
+
+        currentWorkflow.steps.forEach((step, index) => {
+          const stepType = STEP_TYPES[step.type];
+          const colorClass = stepType.color;
+
+          const stepEl = document.createElement("div");
+          stepEl.className = `step-card relative flex gap-4 animate-fade-in ${step.expanded ? "expanded" : ""}`;
+          stepEl.style.animationDelay = `${index * 50}ms`;
+          stepEl.setAttribute("data-step-id", step.id);
+          stepEl.draggable = true;
+
+          stepEl.innerHTML = `
+          <!-- Timeline Node -->
+          <div class="flex-shrink-0 relative">
+            <div class="w-12 h-12 rounded-xl bg-${colorClass}-500/20 border-2 border-${colorClass}-500/50 flex items-center justify-center z-10 relative cursor-grab"
+                 style="background: rgba(var(--${colorClass}-rgb, 16, 185, 129), 0.2);">
+              <svg class="w-6 h-6 text-${colorClass}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ${stepType.icon}
+              </svg>
+            </div>
+            <div class="absolute left-1/2 top-12 bottom-0 w-0.5 bg-slate-700 -translate-x-1/2 ${index === currentWorkflow.steps.length - 1 ? "hidden" : ""}"></div>
+          </div>
+
+          <!-- Step Card -->
+          <div class="flex-1 glass-card glass-card-hover p-4 mb-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs font-medium text-${colorClass}-400 uppercase tracking-wider">${stepType.name}</span>
+                  <span class="text-xs text-slate-500">#${index + 1}</span>
+                </div>
+                <h4 class="text-white font-medium">${step.config.action || stepType.options[0]}</h4>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="toggleStepExpand('${step.id}')" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all">
+                  <svg class="w-4 h-4 transition-transform ${step.expanded ? "rotate-180" : ""}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <button onclick="removeStep('${step.id}')" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expanded Configuration -->
+            <div class="${step.expanded ? "" : "hidden"} mt-4 pt-4 border-t border-slate-700/50 space-y-4">
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Action Type</label>
+                <select onchange="updateStepConfig('${step.id}', 'action', this.value)"
+                  class="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 transition-all">
+                  ${stepType.options.map((opt) => `<option value="${opt}" ${step.config.action === opt ? "selected" : ""}>${opt}</option>`).join("")}
+                </select>
+              </div>
+
+              ${
+                step.type === "ai"
+                  ? `
+                <div>
+                  <label class="block text-sm text-slate-400 mb-2">AI Prompt Template</label>
+                  <textarea onchange="updateStepConfig('${step.id}', 'prompt', this.value)"
+                    class="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 transition-all resize-none"
+                    rows="3" placeholder="Enter your prompt...">${step.config.prompt || ""}</textarea>
+                </div>
+              `
+                  : ""
+              }
+
+              ${
+                step.type === "webhook"
+                  ? `
+                <div>
+                  <label class="block text-sm text-slate-400 mb-2">URL</label>
+                  <input type="url" onchange="updateStepConfig('${step.id}', 'url', this.value)" value="${step.config.url || ""}"
+                    class="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="https://api.example.com/webhook">
+                </div>
+              `
+                  : ""
+              }
+
+              ${
+                step.type === "condition"
+                  ? `
+                <div>
+                  <label class="block text-sm text-slate-400 mb-2">Condition Expression</label>
+                  <input type="text" onchange="updateStepConfig('${step.id}', 'expression', this.value)" value="${step.config.expression || ""}"
+                    class="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="{{input.value}} > 10">
+                </div>
+              `
+                  : ""
+              }
+
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Output Variable</label>
+                <input type="text" onchange="updateStepConfig('${step.id}', 'outputVar', this.value)" value="${step.config.outputVar || `step_${index + 1}_output`}"
+                  class="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 transition-all"
+                  placeholder="output_variable">
+              </div>
+            </div>
+          </div>
+        `;
+
+          // Add drag event listeners
+          stepEl.addEventListener("dragstart", handleStepDragStart);
+          stepEl.addEventListener("dragend", handleStepDragEnd);
+          stepEl.addEventListener("dragover", handleStepDragOver);
+          stepEl.addEventListener("drop", handleStepDrop);
+
+          container.appendChild(stepEl);
+        });
+
+        // Apply color styles since Tailwind can't process dynamic classes
+        applyStepColors();
+      }
+
+      function applyStepColors() {
+        const colorMap = {
+          emerald: {
+            bg: "rgba(16, 185, 129, 0.2)",
+            border: "rgba(16, 185, 129, 0.5)",
+            text: "#34d399",
+          },
+          purple: {
+            bg: "rgba(168, 85, 247, 0.2)",
+            border: "rgba(168, 85, 247, 0.5)",
+            text: "#a78bfa",
+          },
+          cyan: {
+            bg: "rgba(6, 182, 212, 0.2)",
+            border: "rgba(6, 182, 212, 0.5)",
+            text: "#22d3ee",
+          },
+          orange: {
+            bg: "rgba(249, 115, 22, 0.2)",
+            border: "rgba(249, 115, 22, 0.5)",
+            text: "#fb923c",
+          },
+          yellow: {
+            bg: "rgba(234, 179, 8, 0.2)",
+            border: "rgba(234, 179, 8, 0.5)",
+            text: "#facc15",
+          },
+          pink: {
+            bg: "rgba(236, 72, 153, 0.2)",
+            border: "rgba(236, 72, 153, 0.5)",
+            text: "#f472b6",
+          },
+        };
+
+        currentWorkflow.steps.forEach((step, index) => {
+          const stepType = STEP_TYPES[step.type];
+          const colors = colorMap[stepType.color];
+          const stepEl = document.querySelector(`[data-step-id="${step.id}"]`);
+          if (stepEl) {
+            const node = stepEl.querySelector(".rounded-xl");
+            if (node) {
+              node.style.background = colors.bg;
+              node.style.borderColor = colors.border;
+            }
+            const icon = stepEl.querySelector("svg");
+            if (icon) icon.style.color = colors.text;
+            const label = stepEl.querySelector(".uppercase");
+            if (label) label.style.color = colors.text;
+          }
+        });
+      }
+
+      // ==========================================
+      // Minimap
+      // ==========================================
+
+      function updateMinimap() {
+        const container = document.getElementById("minimap-nodes");
+        container.innerHTML = "";
+
+        const colorMap = {
+          emerald: "#34d399",
+          purple: "#a78bfa",
+          cyan: "#22d3ee",
+          orange: "#fb923c",
+          yellow: "#facc15",
+          pink: "#f472b6",
+        };
+
+        const steps = currentWorkflow.steps;
+        const total = steps.length;
+
+        steps.forEach((step, index) => {
+          const stepType = STEP_TYPES[step.type];
+          const color = colorMap[stepType.color];
+
+          // Calculate position in a radial layout
+          const angle =
+            (index / Math.max(total, 1)) * 2 * Math.PI - Math.PI / 2;
+          const radius = total <= 1 ? 0 : 30;
+          const x = 50 + radius * Math.cos(angle);
+          const y = 50 + radius * Math.sin(angle);
+
+          const node = document.createElement("div");
+          node.className =
+            "minimap-node absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2 cursor-pointer";
+          node.style.left = `${x}%`;
+          node.style.top = `${y}%`;
+          node.style.backgroundColor = color;
+          node.style.boxShadow = `0 0 8px ${color}`;
+          node.title = `${stepType.name}: ${step.config.action}`;
+
+          node.addEventListener("click", () => {
+            const stepEl = document.querySelector(
+              `[data-step-id="${step.id}"]`,
+            );
+            if (stepEl) {
+              stepEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          });
+
+          container.appendChild(node);
+        });
+
+        // Add connecting lines
+        if (steps.length > 1) {
+          const svg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg",
+          );
+          svg.setAttribute(
+            "class",
+            "absolute inset-0 w-full h-full pointer-events-none",
+          );
+          svg.setAttribute("viewBox", "0 0 100 100");
+
+          for (let i = 0; i < steps.length - 1; i++) {
+            const angle1 =
+              (i / Math.max(steps.length, 1)) * 2 * Math.PI - Math.PI / 2;
+            const angle2 =
+              ((i + 1) / Math.max(steps.length, 1)) * 2 * Math.PI - Math.PI / 2;
+            const radius = steps.length <= 1 ? 0 : 30;
+
+            const x1 = 50 + radius * Math.cos(angle1);
+            const y1 = 50 + radius * Math.sin(angle1);
+            const x2 = 50 + radius * Math.cos(angle2);
+            const y2 = 50 + radius * Math.sin(angle2);
+
+            const line = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "line",
+            );
+            line.setAttribute("x1", x1);
+            line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2);
+            line.setAttribute("y2", y2);
+            line.setAttribute("stroke", "rgba(99, 102, 241, 0.3)");
+            line.setAttribute("stroke-width", "1");
+            svg.appendChild(line);
+          }
+
+          container.insertBefore(svg, container.firstChild);
+        }
+      }
+
+      // ==========================================
+      // Drag and Drop
+      // ==========================================
+
+      function handleToolDragStart(e) {
+        draggedStepType = e.target.closest("[data-step-type]").dataset.stepType;
+        e.dataTransfer.effectAllowed = "copy";
+      }
+
+      function handleStepDragStart(e) {
+        draggedStep = e.target.closest("[data-step-id]").dataset.stepId;
+        e.target.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      }
+
+      function handleStepDragEnd(e) {
+        e.target.classList.remove("dragging");
+        draggedStep = null;
+        document
+          .querySelectorAll(".drag-over")
+          .forEach((el) => el.classList.remove("drag-over"));
+      }
+
+      function handleStepDragOver(e) {
+        e.preventDefault();
+        const stepEl = e.target.closest("[data-step-id]");
+        if (stepEl && stepEl.dataset.stepId !== draggedStep) {
+          stepEl.classList.add("drag-over");
+        }
+      }
+
+      function handleStepDrop(e) {
+        e.preventDefault();
+        const targetStepEl = e.target.closest("[data-step-id]");
+        if (!targetStepEl) return;
+
+        targetStepEl.classList.remove("drag-over");
+        const targetStepId = targetStepEl.dataset.stepId;
+
+        if (draggedStep && draggedStep !== targetStepId) {
+          // Reorder steps
+          const fromIndex = currentWorkflow.steps.findIndex(
+            (s) => s.id === draggedStep,
+          );
+          const toIndex = currentWorkflow.steps.findIndex(
+            (s) => s.id === targetStepId,
+          );
+
+          const [removed] = currentWorkflow.steps.splice(fromIndex, 1);
+          currentWorkflow.steps.splice(toIndex, 0, removed);
+
+          renderWorkflow();
+          updateMinimap();
+          addLog("Reordered steps", "info");
+        }
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+        if (draggedStepType) {
+          e.currentTarget.classList.add("drag-over");
+        }
+      }
+
+      function handleDragLeave(e) {
+        e.currentTarget.classList.remove("drag-over");
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove("drag-over");
+
+        if (draggedStepType) {
+          addStep(draggedStepType);
+          draggedStepType = null;
+        }
+      }
+
+      // ==========================================
+      // AI Copilot
+      // ==========================================
+
+      function toggleCopilot() {
+        const panel = document.getElementById("copilot-panel");
+        panel.classList.toggle("hidden");
+      }
+
+      function processCopilotPrompt(prompt) {
+        const lower = prompt.toLowerCase();
+        const steps = [];
+
+        // Parse trigger
+        if (lower.includes("telegram")) {
+          steps.push({
+            type: "trigger",
+            config: { action: "Telegram Message" },
+          });
+        } else if (lower.includes("email")) {
+          steps.push({ type: "trigger", config: { action: "Email Received" } });
+        } else if (lower.includes("webhook")) {
+          steps.push({ type: "trigger", config: { action: "Webhook Call" } });
+        } else if (lower.includes("schedule")) {
+          steps.push({ type: "trigger", config: { action: "Schedule" } });
+        } else if (lower.includes("form")) {
+          steps.push({ type: "trigger", config: { action: "Form Submit" } });
+        }
+
+        // Parse AI actions
+        if (lower.includes("summarize") || lower.includes("summary")) {
+          steps.push({
+            type: "ai",
+            config: {
+              action: "Summarize Text",
+              prompt: "Summarize the following content: {{input}}",
+            },
+          });
+        }
+        if (
+          lower.includes("generate") ||
+          lower.includes("response") ||
+          lower.includes("reply")
+        ) {
+          steps.push({
+            type: "ai",
+            config: {
+              action: "Generate Response",
+              prompt: "Generate a response for: {{input}}",
+            },
+          });
+        }
+        if (lower.includes("classify") || lower.includes("categorize")) {
+          steps.push({ type: "ai", config: { action: "Classify Content" } });
+        }
+        if (lower.includes("extract")) {
+          steps.push({ type: "ai", config: { action: "Extract Data" } });
+        }
+        if (lower.includes("translate")) {
+          steps.push({ type: "ai", config: { action: "Translate" } });
+        }
+
+        // Parse database
+        if (
+          lower.includes("store") ||
+          lower.includes("save") ||
+          lower.includes("database")
+        ) {
+          steps.push({ type: "database", config: { action: "Store Record" } });
+        }
+        if (
+          lower.includes("query") ||
+          lower.includes("fetch") ||
+          lower.includes("get")
+        ) {
+          steps.push({ type: "database", config: { action: "Query Data" } });
+        }
+
+        // Parse webhook/notifications
+        if (lower.includes("slack")) {
+          steps.push({ type: "webhook", config: { action: "Send to Slack" } });
+        }
+        if (lower.includes("discord")) {
+          steps.push({
+            type: "webhook",
+            config: { action: "Send to Discord" },
+          });
+        }
+        if (lower.includes("api") || lower.includes("http")) {
+          steps.push({ type: "webhook", config: { action: "HTTP POST" } });
+        }
+
+        // Parse conditions
+        if (
+          lower.includes("if ") ||
+          lower.includes("condition") ||
+          lower.includes("when")
+        ) {
+          if (steps.length > 0 && !steps.some((s) => s.type === "condition")) {
+            const idx = steps.length > 1 ? 1 : 0;
+            steps.splice(idx, 0, {
+              type: "condition",
+              config: { action: "If/Else" },
+            });
+          }
+        }
+
+        return steps;
+      }
+
+      function generateWorkflowFromPrompt(prompt) {
+        const chatContainer = document.getElementById("copilot-chat");
+
+        // Add user message
+        chatContainer.innerHTML += `
+        <div class="flex justify-end">
+          <div class="glass-card p-3 max-w-[80%] text-sm text-white">
+            ${prompt}
+          </div>
+        </div>
+      `;
+
+        // notify backend to start AI stream
+        fetch("/ai/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt, model: "gpt-4" }),
+        }).catch((e) => console.error("ai request", e));
+
+        // the actual AI response will appear in #ai-stream-output via websocket
+      }
+
+      // ==========================================
+      // Workflow Execution (Simulation)
+      // ==========================================
+
+      function runWorkflow() {
+        if (currentWorkflow.steps.length === 0) {
+          showToast("Add some steps first!", "warning");
+          return;
+        }
+
+        addLog("Starting workflow execution...", "info");
+
+        currentWorkflow.steps.forEach((step, index) => {
+          setTimeout(() => {
+            const stepType = STEP_TYPES[step.type];
+            addLog(
+              `[${index + 1}] Executing ${stepType.name}: ${step.config.action}`,
+              "success",
+            );
+
+            // Highlight step in minimap
+            const minimapNodes = document.querySelectorAll(".minimap-node");
+            minimapNodes.forEach((node, i) => {
+              node.classList.toggle("active", i === index);
+            });
+
+            // Simulate output
+            if (step.type === "ai") {
+              setTimeout(() => {
+                addLog(
+                  `    → Output: "Generated AI response for input data"`,
+                  "output",
+                );
+              }, 200);
+            } else if (step.type === "database") {
+              setTimeout(() => {
+                addLog(
+                  `    → Output: { "status": "success", "id": "rec_${Date.now()}" }`,
+                  "output",
+                );
+              }, 200);
+            }
+
+            if (index === currentWorkflow.steps.length - 1) {
+              setTimeout(() => {
+                addLog("Workflow execution completed!", "success");
+                minimapNodes.forEach((node) => node.classList.remove("active"));
+              }, 500);
+            }
+          }, index * 1000);
+        });
+      }
+
+      // ==========================================
+      // Logs
+      // ==========================================
+
+      function addLog(message, type = "info") {
+        const container = document.getElementById("logs-container");
+        const colors = {
+          info: "text-slate-400",
+          success: "text-emerald-400",
+          warning: "text-yellow-400",
+          error: "text-red-400",
+          output: "text-cyan-400",
+        };
+
+        const timestamp = new Date().toLocaleTimeString();
+        const logEl = document.createElement("div");
+        logEl.className = `log-entry ${colors[type]} animate-fade-in`;
+        logEl.innerHTML = `<span class="text-slate-600">[${timestamp}]</span> ${message}`;
+
+        container.appendChild(logEl);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function clearLogs() {
+        const container = document.getElementById("logs-container");
+        container.innerHTML =
+          '<div class="text-slate-500">// Logs cleared</div>';
+      }
+
+      // ==========================================
+      // UI Helpers
+      // ==========================================
+
+      function showAddStepMenu() {
+        document.getElementById("add-step-menu").classList.remove("hidden");
+      }
+
+      function hideAddStepMenu() {
+        document.getElementById("add-step-menu").classList.add("hidden");
+      }
+
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        const colors = {
+          success: "bg-emerald-500/20 border-emerald-500/50 text-emerald-400",
+          warning: "bg-yellow-500/20 border-yellow-500/50 text-yellow-400",
+          error: "bg-red-500/20 border-red-500/50 text-red-400",
+          info: "bg-indigo-500/20 border-indigo-500/50 text-indigo-400",
+        };
+
+        const toast = document.createElement("div");
+        toast.className = `toast glass-card px-4 py-3 ${colors[type]} border text-sm font-medium`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateX(100%)";
+          toast.style.transition = "all 0.3s ease";
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      function navigateTo(page) {
+        // Update nav active state
+        document.querySelectorAll(".nav-link").forEach((link) => {
+          const isActive = link.dataset.page === page;
+          link.classList.toggle("text-white", isActive);
+          link.classList.toggle("bg-slate-800/50", isActive);
+          link.classList.toggle("text-slate-400", !isActive);
+        });
+
+        // In a full app, this would show different pages
+        showToast(`Navigating to ${page}...`, "info");
+      }
+
+      // ==========================================
+      // Event Listeners
+      // ==========================================
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("login-email").value;
+          const password = document.getElementById("login-password").value;
+
+          const ok = await login(email, password);
+          if (!ok) {
+            const errorEl = document.getElementById("login-error");
+            errorEl.textContent = "Invalid email or password";
+            errorEl.classList.remove("hidden");
+            setTimeout(() => errorEl.classList.add("hidden"), 3000);
+          }
+        });
+
+      document
+        .getElementById("copilot-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const input = document.getElementById("copilot-input");
+          const prompt = input.value.trim();
+
+          if (prompt) {
+            generateWorkflowFromPrompt(prompt);
+            input.value = "";
+          }
+        });
+
+      // Close modal on outside click
+      document
+        .getElementById("add-step-menu")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "add-step-menu") {
+            hideAddStepMenu();
+          }
+        });
+
+      // Initialize
+      checkAuth();
+      updateUIFromConfig();
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'9d76e45c64377fec',t:'MTc3MjY5MDMzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

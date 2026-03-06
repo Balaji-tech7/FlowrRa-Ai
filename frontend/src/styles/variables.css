@@ -1,0 +1,42 @@
+/* Theme variables */
+:root {
+  --accent: #ff6b35;
+  --accent-dim: #c0520a;
+  --accent-muted: rgba(255, 107, 53, 0.08);
+  --accent-border: rgba(255, 107, 53, 0.2);
+  --bg-base: #0a0d14;
+  --bg-card: rgba(16, 20, 32, 0.9);
+  --bg-card2: rgba(12, 16, 26, 0.8);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(255, 107, 53, 0.25);
+  --text-primary: #e8e6e2;
+  --text-secondary: #9a9790;
+  --text-muted: #565452;
+  --ai-accent: #5f84a8;
+  --ai-light: #7fa5c8;
+  --success: #4aa06a;
+  --error: #a65555;
+  --warning: #d4954a;
+}
+
+/* simple mode overrides */
+body.mode-simple {
+  --accent: #7c3aed;
+  --accent-dim: #5b21b6;
+  --accent-muted: rgba(124, 58, 237, 0.08);
+  --accent-border: rgba(124, 58, 237, 0.22);
+  --bg-base: #f4f2fb;
+  --bg-card: rgba(255, 255, 255, 0.97);
+  --bg-card2: rgba(246, 243, 255, 0.96);
+  --border: rgba(124, 58, 237, 0.1);
+  --border-accent: rgba(124, 58, 237, 0.3);
+  --text-primary: #1e1535;
+  --text-secondary: #6b5b9e;
+  --text-muted: #a89dc7;
+  --ai-accent: #7c3aed;
+  --ai-light: #9d6ff7;
+  --success: #059669;
+  --error: #dc2626;
+  --warning: #d97706;
+}
+/* mode-simple structural overrides are placed in components.css */

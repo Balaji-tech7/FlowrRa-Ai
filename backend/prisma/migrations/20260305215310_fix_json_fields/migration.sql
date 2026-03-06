@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Execution" ALTER COLUMN "input" SET DATA TYPE TEXT,
+ALTER COLUMN "output" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "Workflow" ALTER COLUMN "definition" SET DATA TYPE TEXT;

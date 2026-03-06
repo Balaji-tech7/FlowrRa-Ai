@@ -1,0 +1,8 @@
+Folder PATH listing for volume OS
+Volume serial number is 182D-275D
+C:.
+    directory_structure.txt
+    test.txt
+    
+No subfolders exist 
+
