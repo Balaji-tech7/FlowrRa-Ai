@@ -166,7 +166,7 @@ configure step      Bruce Wayne chat
 6. The execution log updates with the AI's reasoning and a success entry
 7. If the API is unavailable, the local fallback parser uses regex pattern matching to generate a sensible workflow client-side with zero downtime
 
-### Bruce Wayne Agent — Step by Step
+### Agent — Step by Step
 
 1. User sends a chat message, for example: "Add a webhook trigger step"
 2. The message plus the full serialised canvas state is sent to Claude as context
