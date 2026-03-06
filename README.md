@@ -448,4 +448,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Flowra — Automation for Everyone, in Every Language
 
-Built in 30 hours · Powered by Anthropic Claude · Zero dependencies
+Built in 30 hours · Zero dependencies
