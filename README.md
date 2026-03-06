@@ -52,7 +52,7 @@ Flowra is not just an automation tool — it is an AI co-pilot for your business
 - Real-time execution log showing the AI's reasoning as it constructs each step
 - Offline fallback parser so basic workflows still generate even without API access
 
-### 🦇 Bruce Wayne — Conversational Canvas Agent
+### Conversational Canvas Agent
 - An embedded AI chat agent that directly controls the workflow canvas via conversation
 - Add steps, clear the canvas, get suggestions, or build entire workflows — all through chat
 - Canvas-aware: every message includes the current step context so the agent always knows your state
