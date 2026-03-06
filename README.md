@@ -427,10 +427,9 @@ Zero-dependency, zero-infrastructure. The entire platform ships as a single HTML
 
 | Name | Role |
 |---|---|
-| Balaji N | Full-Stack Development, AI Integration, UI/UX Design |
+| Balaji N , Aasim Rehman , Amizhthiniya V, Prithvee Ganesh | Full-Stack Development, AI Integration, UI/UX Design |
 
-Built during [Hackathon Name] · [Date]
-
+Built during KreativeGenesis · 5th March & 6th March
 ---
 
 ## 📜 License
