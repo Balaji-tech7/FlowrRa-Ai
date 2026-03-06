@@ -36,7 +36,7 @@ Flowra is an AI-first, browser-based workflow automation platform that lets anyo
 | English-only interfaces | Works in 12+ languages including Tamil, Hindi, Arabic |
 | Separate tools for devs vs. non-devs | Dual-mode: Pro canvas + AI-first Simple mode |
 | Need to know which steps to add | AI generates the entire workflow for you |
-| No AI assistant to guide you | Bruce Wayne — an AI agent that controls your canvas |
+| No AI assistant to guide you | An AI agent that controls your canvas |
 | Expensive SaaS subscriptions | Zero-dependency, open, deployable anywhere |
 
 Flowra is not just an automation tool — it is an AI co-pilot for your business operations.
